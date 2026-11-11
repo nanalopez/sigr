@@ -1,7 +1,7 @@
 """Sistema Integral de Gestión de Restaurante (SIGR)."""
 import os
 
-from flask import Flask
+from flask import Flask, send_from_directory
 
 from .auth import bp as auth_bp, ensure_admin
 from .cashier import bp as cashier_bp
@@ -27,4 +27,9 @@ def create_app(test_config=None):
 
     for blueprint in (auth_bp, menu_bp, orders_bp, reservations_bp, cashier_bp):
         app.register_blueprint(blueprint)
+
+    @app.route("/")
+    def index():
+        return send_from_directory(app.static_folder, "index.html")
+
     return app

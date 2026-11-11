@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGR · Gestión de Restaurante</title>
+<style>
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --sidebar: #1a1f2e;
+  --sidebar-text: #a0aabb;
+  --sidebar-active: #ffffff;
+  --sidebar-active-bg: rgba(255,255,255,0.1);
+  --accent: #c94a1a;
+  --accent-hover: #a83a14;
+  --text: #1a1f2e;
+  --text-muted: #4b5563;
+  --border: #e5e7eb;
+  --success: #047857;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --info: #1d4ed8;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── AUTH ── */
+#auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%);
+}
+
+.auth-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-logo h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.auth-logo h1 span { color: var(--accent); }
+.auth-logo p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+
+.auth-tabs {
+  display: flex;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 24px;
+  gap: 2px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.auth-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--accent);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+}
+
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn-secondary { background: var(--bg); color: var(--text); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #036b4a; }
+.btn-info { background: var(--info); color: white; }
+.btn-info:hover { background: #1e40af; }
+.btn-warning { background: var(--warning); color: #1a1f2e; }
+.btn-warning:hover { background: #d97706; }
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── ALERT ── */
+.alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+.alert.show { display: block; }
+.alert-error { background: #fee2e2; color: #991b1b; }
+.alert-success { background: #d1fae5; color: #065f46; }
+
+/* ── LAYOUT ── */
+#app { display: none; min-height: 100vh; }
+#app.show { display: flex; }
+
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-logo .sidebar-brand {
+  font-size: 20px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-logo .sidebar-brand span { color: var(--accent); }
+
+.sidebar-user {
+  padding: 12px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.user-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+
+.badge-admin { background: rgba(255,107,53,0.2); color: var(--accent); }
+.badge-mesero { background: rgba(59,130,246,0.2); color: #93c5fd; }
+.badge-cliente { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+
+.sidebar-user p:first-child {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+nav { flex: 1; padding: 12px 10px; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-bottom: 2px;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+.nav-item.active { background: var(--sidebar-active-bg); color: var(--sidebar-active); }
+.nav-item.active .nav-icon { color: var(--accent); }
+
+.nav-icon { font-size: 16px; }
+.nav-label { flex: 1; }
+
+.sidebar-footer {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.topbar h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.content {
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+}
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.view-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h3 { font-size: 14px; font-weight: 600; }
+.card-body { padding: 20px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+/* ── STAT ── */
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.stat-value { font-size: 28px; font-weight: 800; color: var(--text); margin: 4px 0; }
+.stat-sub { font-size: 12px; color: var(--text-muted); }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+
+td { padding: 12px 16px; font-size: 13px; }
+
+/* ── STATUS BADGE ── */
+.status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-recibido { background: #dbeafe; color: #1d4ed8; }
+.status-en_preparacion { background: #fef3c7; color: #92400e; }
+.status-listo { background: #d1fae5; color: #065f46; }
+.status-entregado { background: #e0e7ff; color: #3730a3; }
+.status-cancelado { background: #fee2e2; color: #991b1b; }
+.status-activa { background: #d1fae5; color: #065f46; }
+.status-cancelada { background: #fee2e2; color: #991b1b; }
+
+/* ── DISH CARD ── */
+.dish-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.dish-card:hover { box-shadow: var(--shadow); }
+.dish-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.dish-category { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+.dish-price { font-size: 18px; font-weight: 800; color: var(--accent); }
+.dish-unavailable { opacity: 0.5; }
+
+/* ── ORDER BUILDER ── */
+.order-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.order-item-row:last-child { border-bottom: none; }
+.order-item-name { flex: 1; font-size: 13px; }
+.order-item-price { color: var(--text-muted); font-size: 12px; min-width: 70px; text-align: right; }
+
+.qty-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qty-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+
+.qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+.qty-num { font-weight: 700; min-width: 20px; text-align: center; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+  display: none;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 { font-size: 16px; font-weight: 700; }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); padding: 0; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── EMPTY ── */
+.empty {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-muted);
+}
+
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-bar input, .filter-bar select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--surface);
+  outline: none;
+  color: var(--text);
+}
+
+.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+
+/* ── LOADING ── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text-muted);
+  gap: 10px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .nav-label, .sidebar-logo .sidebar-brand, .sidebar-user p, .user-badge { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .content { padding: 20px 16px; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH SCREEN ══ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>SI<span>G</span>R</h1>
+      <p>Sistema Integral de Gestión de Restaurante</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showAuthTab('login')">Iniciar Sesión</button>
+      <button class="auth-tab" onclick="showAuthTab('register')">Registrarse</button>
+    </div>
+    <div id="auth-alert" class="alert"></div>
+
+    <!-- Login -->
+    <div id="form-login">
+      <div class="form-group">
+        <label>Usuario</label>
+        <input id="login-user" type="text" placeholder="nombre de usuario" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">Iniciar Sesión</button>
+    </div>
+
+    <!-- Register -->
+    <div id="form-register" style="display:none">
+      <div class="form-group">
+        <label>Usuario</label>
+        <input id="reg-user" type="text" placeholder="mínimo 3 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input id="reg-pass" type="password" placeholder="mínimo 6 caracteres">
+      </div>
+      <button class="btn btn-primary" onclick="doRegister()">Crear Cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-brand">SI<span style="color:var(--accent)">G</span>R</div>
+    </div>
+    <div class="sidebar-user">
+      <p id="sidebar-username">—</p>
+      <span id="sidebar-role" class="user-badge">—</span>
+    </div>
+    <nav>
+      <button class="nav-item active" onclick="showView('menu')" id="nav-menu">
+        <span class="nav-icon">🍽️</span>
+        <span class="nav-label">Menú</span>
+      </button>
+      <button class="nav-item" onclick="showView('orders')" id="nav-orders">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Pedidos</span>
+      </button>
+      <button class="nav-item" onclick="showView('reservations')" id="nav-reservations">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Reservas</span>
+      </button>
+      <button class="nav-item admin-only" onclick="showView('cashier')" id="nav-cashier" style="display:none">
+        <span class="nav-icon">💰</span>
+        <span class="nav-label">Caja</span>
+      </button>
+      <button class="nav-item admin-only" onclick="showView('admin')" id="nav-admin" style="display:none">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Administrar</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="nav-item" onclick="doLogout()">
+        <span class="nav-icon">🚪</span>
+        <span class="nav-label">Cerrar Sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="topbar">
+      <p id="topbar-title" style="font-size:16px;font-weight:700;color:var(--text)">Menú</p>
+      <span id="topbar-time" style="color:var(--text-muted);font-size:13px"></span>
+    </div>
+    <div class="content">
+
+      <!-- ── VIEW: MENÚ ── -->
+      <div class="view active" id="view-menu">
+        <div class="view-header">
+          <h2>Menú del Restaurante</h2>
+          <button class="btn btn-secondary btn-sm" onclick="loadMenu()">↺ Actualizar</button>
+        </div>
+        <div class="filter-bar">
+          <input id="menu-search" type="text" placeholder="🔍 Buscar plato..." oninput="filterDishes()">
+          <select id="menu-cat-filter" onchange="filterDishes()">
+            <option value="">Todas las categorías</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text-muted)">
+            <input type="checkbox" id="menu-available" onchange="filterDishes()" checked>
+            Solo disponibles
+          </label>
+        </div>
+        <div id="menu-grid" class="grid-3">
+          <div class="loading"><div class="spinner"></div> Cargando menú…</div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: PEDIDOS ── -->
+      <div class="view" id="view-orders">
+        <div class="view-header">
+          <h2>Pedidos</h2>
+          <button class="btn btn-primary btn-sm" onclick="openOrderModal()">+ Nuevo Pedido</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Historial de Pedidos</h3>
+            <button class="btn btn-secondary btn-sm" onclick="loadOrders()">↺ Actualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Estado</th>
+                  <th>Total</th>
+                  <th>Platos</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                <tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: RESERVAS ── -->
+      <div class="view" id="view-reservations">
+        <div class="view-header">
+          <h2>Reservas</h2>
+          <button class="btn btn-primary btn-sm" onclick="openReservationModal()">+ Nueva Reserva</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Mis Reservas</h3>
+            <button class="btn btn-secondary btn-sm" onclick="loadReservations()">↺ Actualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Personas</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="reservations-tbody">
+                <tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: CAJA ── -->
+      <div class="view" id="view-cashier">
+        <div class="view-header">
+          <h2>Caja & Reportes</h2>
+        </div>
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-header">
+              <h3>Reporte Diario</h3>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="date" id="report-date" style="padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;outline:none" oninput="loadDailyReport()">
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="daily-report-content">
+                <div class="loading"><div class="spinner"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Cierre de Caja</h3>
+              <button class="btn btn-success btn-sm" onclick="closeCash()">Cerrar Caja Hoy</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Ventas</th><th>Pedidos</th></tr></thead>
+                <tbody id="closings-tbody">
+                  <tr><td colspan="3"><div class="loading"><div class="spinner"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VIEW: ADMIN ── -->
+      <div class="view" id="view-admin">
+        <div class="view-header">
+          <h2>Administración del Menú</h2>
+        </div>
+        <div class="grid-2">
+          <!-- Categorías -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Categorías</h3>
+              <button class="btn btn-primary btn-sm" onclick="openCategoryModal()">+ Agregar</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>#</th><th>Nombre</th></tr></thead>
+                <tbody id="admin-categories-tbody">
+                  <tr><td colspan="2"><div class="loading"><div class="spinner"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Platos -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Platos</h3>
+              <button class="btn btn-primary btn-sm" onclick="openDishModal()">+ Agregar</button>
+            </div>
+            <div class="table-wrap" style="max-height:400px;overflow-y:auto">
+              <table>
+                <thead><tr><th>Nombre</th><th>Precio</th><th>Disp.</th><th></th></tr></thead>
+                <tbody id="admin-dishes-tbody">
+                  <tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- New Order -->
+<div class="modal-overlay" id="modal-order">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nuevo Pedido</h3>
+      <button class="modal-close" onclick="closeModal('modal-order')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="order-alert" class="alert"></div>
+      <div id="order-items-list"></div>
+      <div style="margin-top:16px;padding-top:16px;border-top:2px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <strong>Total:</strong>
+        <span id="order-total" style="font-size:20px;font-weight:800;color:var(--accent)">$0.00</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-order')">Cancelar</button>
+      <button class="btn btn-primary" onclick="submitOrder()" id="btn-submit-order">Confirmar Pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Reservation -->
+<div class="modal-overlay" id="modal-reservation">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nueva Reserva</h3>
+      <button class="modal-close" onclick="closeModal('modal-reservation')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="reservation-alert" class="alert"></div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="res-date">
+      </div>
+      <div class="form-group">
+        <label>Hora</label>
+        <input type="time" id="res-time" step="1800">
+      </div>
+      <div class="form-group">
+        <label>Número de Personas (1–20)</label>
+        <input type="number" id="res-people" min="1" max="20" value="2">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-reservation')">Cancelar</button>
+      <button class="btn btn-primary" onclick="submitReservation()">Reservar</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Category -->
+<div class="modal-overlay" id="modal-category">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nueva Categoría</h3>
+      <button class="modal-close" onclick="closeModal('modal-category')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="cat-alert" class="alert"></div>
+      <div class="form-group">
+        <label>Nombre de la Categoría</label>
+        <input type="text" id="cat-name" placeholder="ej: Entradas, Postres…">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-category')">Cancelar</button>
+      <button class="btn btn-primary" onclick="submitCategory()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Dish -->
+<div class="modal-overlay" id="modal-dish">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="dish-modal-title">Nuevo Plato</h3>
+      <button class="modal-close" onclick="closeModal('modal-dish')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="dish-alert" class="alert"></div>
+      <input type="hidden" id="dish-edit-id">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="dish-name" placeholder="Nombre del plato">
+      </div>
+      <div class="form-group">
+        <label>Precio</label>
+        <input type="number" id="dish-price" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label>Categoría</label>
+        <select id="dish-category"></select>
+      </div>
+      <div class="form-group" id="dish-available-group" style="display:none">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="dish-available" checked>
+          Disponible
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-dish')">Cancelar</button>
+      <button class="btn btn-primary" onclick="submitDish()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Order Status -->
+<div class="modal-overlay" id="modal-status">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Cambiar Estado del Pedido</h3>
+      <button class="modal-close" onclick="closeModal('modal-status')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="status-alert" class="alert"></div>
+      <p style="margin-bottom:16px;color:var(--text-muted)">Selecciona el nuevo estado:</p>
+      <div id="status-options" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══
+const API = '';
+let currentUser = null;
+let allDishes = [];
+let allCategories = [];
+let cart = {}; // dish_id -> quantity
+let editingDishId = null;
+
+// ══ UTILS ══
+const $ = id => document.getElementById(id);
+const fmt = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
+async function api(method, path, body) {
+  const opts = { method, credentials: 'include', headers: {} };
+  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  const r = await fetch(API + path, opts);
+  const text = await r.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = {}; }
+  return { ok: r.ok, status: r.status, data };
+}
+
+function showAlert(id, msg, type = 'error') {
+  const el = $(id);
+  el.className = `alert alert-${type} show`;
+  el.textContent = msg;
+}
+
+function hideAlert(id) {
+  const el = $(id);
+  if (el) el.className = 'alert';
+}
+
+function openModal(id) { $(id).classList.add('show'); }
+function closeModal(id) { $(id).classList.remove('show'); }
+
+function statusBadge(s) {
+  const labels = { recibido:'Recibido', en_preparacion:'En Preparación', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado', activa:'Activa', cancelada:'Cancelada' };
+  return `<span class="status status-${s}">${labels[s] || s}</span>`;
+}
+
+function updateClock() {
+  $('topbar-time').textContent = new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+}
+
+// ══ AUTH ══
+function showAuthTab(tab) {
+  $('form-login').style.display = tab === 'login' ? '' : 'none';
+  $('form-register').style.display = tab === 'register' ? '' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((el, i) => el.classList.toggle('active', (i === 0) === (tab === 'login')));
+  hideAlert('auth-alert');
+}
+
+async function doLogin() {
+  hideAlert('auth-alert');
+  const r = await api('POST', '/api/auth/login', { username: $('login-user').value, password: $('login-pass').value });
+  if (!r.ok) return showAlert('auth-alert', r.data.error || 'Error al iniciar sesión');
+  currentUser = r.data;
+  startApp();
+}
+
+async function doRegister() {
+  hideAlert('auth-alert');
+  const r = await api('POST', '/api/auth/register', { username: $('reg-user').value, password: $('reg-pass').value });
+  if (!r.ok) return showAlert('auth-alert', r.data.error || 'Error al registrar');
+  showAlert('auth-alert', '¡Cuenta creada! Ahora inicia sesión.', 'success');
+  showAuthTab('login');
+  $('login-user').value = $('reg-user').value;
+}
+
+async function doLogout() {
+  await api('POST', '/api/auth/logout');
+  currentUser = null;
+  $('app').classList.remove('show');
+  $('auth-screen').style.display = 'flex';
+}
+
+function startApp() {
+  $('auth-screen').style.display = 'none';
+  $('app').classList.add('show');
+
+  $('sidebar-username').textContent = currentUser.username;
+  const roleBadge = $('sidebar-role');
+  roleBadge.textContent = currentUser.role;
+  roleBadge.className = `user-badge badge-${currentUser.role === 'administrador' ? 'admin' : currentUser.role}`;
+
+  const isAdmin = currentUser.role === 'administrador';
+  const isStaff = isAdmin || currentUser.role === 'mesero';
+
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+
+  updateClock();
+  setInterval(updateClock, 10000);
+
+  // Set today as default date for report/reservation
+  const today = new Date().toISOString().slice(0, 10);
+  $('report-date').value = today;
+  $('res-date').value = today;
+
+  loadMenu();
+  loadOrders();
+  loadReservations();
+  if (isAdmin) { loadDailyReport(); loadClosings(); loadAdminData(); }
+}
+
+// ══ VIEWS ══
+const viewTitles = { menu: 'Menú', orders: 'Pedidos', reservations: 'Reservas', cashier: 'Caja & Reportes', admin: 'Administración' };
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(v => v.classList.remove('active'));
+  $(`view-${name}`).classList.add('active');
+  $(`nav-${name}`).classList.add('active');
+  $('topbar-title').textContent = viewTitles[name] || name;
+}
+
+// ══ MENÚ ══
+async function loadMenu() {
+  const [catRes, dishRes] = await Promise.all([api('GET', '/api/categories'), api('GET', '/api/dishes')]);
+  allCategories = catRes.ok ? catRes.data : [];
+  allDishes = dishRes.ok ? dishRes.data : [];
+
+  // Populate category filter
+  const catFilter = $('menu-cat-filter');
+  const prev = catFilter.value;
+  catFilter.innerHTML = '<option value="">Todas las categorías</option>' +
+    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  catFilter.value = prev;
+
+  filterDishes();
+}
+
+function filterDishes() {
+  const search = $('menu-search').value.toLowerCase();
+  const catId = $('menu-cat-filter').value;
+  const onlyAvail = $('menu-available').checked;
+
+  let dishes = allDishes;
+  if (search) dishes = dishes.filter(d => d.name.toLowerCase().includes(search));
+  if (catId) dishes = dishes.filter(d => d.category_id == catId);
+  if (onlyAvail) dishes = dishes.filter(d => d.available);
+
+  const grid = $('menu-grid');
+  if (!dishes.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🍽️</div><p>No hay platos que coincidan</p></div>';
+    return;
+  }
+
+  grid.innerHTML = dishes.map(d => `
+    <div class="dish-card ${!d.available ? 'dish-unavailable' : ''}">
+      <div class="dish-category">${d.category}</div>
+      <div class="dish-name">${d.name}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+        <div class="dish-price">${fmt(d.price)}</div>
+        ${d.available ? `<button class="btn btn-primary btn-sm" onclick="addToCart(${d.id})">+ Pedir</button>` : `<span style="font-size:11px;color:var(--danger);font-weight:600">No disponible</span>`}
+      </div>
+    </div>`).join('');
+}
+
+// ══ ORDERS ══
+async function loadOrders() {
+  const r = await api('GET', '/api/orders');
+  const tbody = $('orders-tbody');
+  if (!r.ok || !r.data.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">📋</div><p>No hay pedidos aún</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = r.data.reverse().map(o => `
+    <tr>
+      <td><strong>#${o.id}</strong></td>
+      <td>${statusBadge(o.status)}</td>
+      <td><strong>${fmt(o.total)}</strong></td>
+      <td style="color:var(--text-muted);font-size:12px">${o.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}</td>
+      <td style="color:var(--text-muted)">${o.created_at.slice(0,16).replace('T',' ')}</td>
+      <td>${canChangeStatus(o.status) ? `<button class="btn btn-sm btn-secondary" onclick="openStatusModal(${o.id},'${o.status}')">Cambiar Estado</button>` : ''}</td>
+    </tr>`).join('');
+}
+
+const TRANSITIONS = { recibido:['en_preparacion','cancelado'], en_preparacion:['listo','cancelado'], listo:['entregado'], entregado:[], cancelado:[] };
+const statusLabels = { en_preparacion:'En Preparación', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
+const statusColors = { en_preparacion:'btn-warning', listo:'btn-success', entregado:'btn-info', cancelado:'btn-danger' };
+
+function canChangeStatus(s) {
+  const isStaff = currentUser.role === 'administrador' || currentUser.role === 'mesero';
+  return isStaff && TRANSITIONS[s] && TRANSITIONS[s].length > 0;
+}
+
+function openStatusModal(orderId, currentStatus) {
+  hideAlert('status-alert');
+  const opts = TRANSITIONS[currentStatus] || [];
+  $('status-options').innerHTML = opts.map(s =>
+    `<button class="btn ${statusColors[s]||'btn-secondary'}" onclick="changeStatus(${orderId},'${s}')">${statusLabels[s]||s}</button>`
+  ).join('');
+  $('modal-status').dataset.orderId = orderId;
+  openModal('modal-status');
+}
+
+async function changeStatus(orderId, newStatus) {
+  hideAlert('status-alert');
+  const r = await api('PATCH', `/api/orders/${orderId}/status`, { status: newStatus });
+  if (!r.ok) return showAlert('status-alert', r.data.error || 'Error al cambiar estado');
+  closeModal('modal-status');
+  loadOrders();
+}
+
+function openOrderModal() {
+  cart = {};
+  renderOrderModal();
+  hideAlert('order-alert');
+  openModal('modal-order');
+}
+
+function addToCart(dishId) {
+  cart[dishId] = (cart[dishId] || 0) + 1;
+  renderOrderModal();
+  if (!$('modal-order').classList.contains('show')) openModal('modal-order');
+}
+
+function renderOrderModal() {
+  const avail = allDishes.filter(d => d.available);
+  let total = 0;
+  const rows = avail.map(d => {
+    const qty = cart[d.id] || 0;
+    total += qty * d.price;
+    return `
+      <div class="order-item-row">
+        <div class="order-item-name">${d.name}<br><small style="color:var(--text-muted)">${d.category}</small></div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="setQty(${d.id},-1)">−</button>
+          <span class="qty-num">${qty}</span>
+          <button class="qty-btn" onclick="setQty(${d.id},1)">+</button>
+        </div>
+        <div class="order-item-price">${fmt(d.price)}</div>
+      </div>`;
+  }).join('');
+  $('order-items-list').innerHTML = rows || '<p style="color:var(--text-muted)">No hay platos disponibles.</p>';
+  $('order-total').textContent = fmt(total);
+}
+
+function setQty(dishId, delta) {
+  cart[dishId] = Math.max(0, (cart[dishId] || 0) + delta);
+  if (cart[dishId] === 0) delete cart[dishId];
+  renderOrderModal();
+}
+
+async function submitOrder() {
+  hideAlert('order-alert');
+  const items = Object.entries(cart).map(([dish_id, quantity]) => ({ dish_id: parseInt(dish_id), quantity }));
+  if (!items.length) return showAlert('order-alert', 'Agrega al menos un plato al pedido');
+  const r = await api('POST', '/api/orders', { items });
+  if (!r.ok) return showAlert('order-alert', r.data.error || 'Error al crear pedido');
+  closeModal('modal-order');
+  cart = {};
+  loadOrders();
+  showView('orders');
+}
+
+// ══ RESERVATIONS ══
+async function loadReservations() {
+  const r = await api('GET', '/api/reservations');
+  const tbody = $('reservations-tbody');
+  if (!r.ok || !r.data.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">📅</div><p>No hay reservas aún</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = r.data.reverse().map(res => `
+    <tr>
+      <td><strong>#${res.id}</strong></td>
+      <td>${res.date}</td>
+      <td>${res.time}</td>
+      <td>👥 ${res.people}</td>
+      <td>${statusBadge(res.status)}</td>
+      <td>${res.status === 'activa' ? `<button class="btn btn-sm btn-danger" onclick="cancelReservation(${res.id})">Cancelar</button>` : ''}</td>
+    </tr>`).join('');
+}
+
+function openReservationModal() {
+  hideAlert('reservation-alert');
+  openModal('modal-reservation');
+}
+
+async function submitReservation() {
+  hideAlert('reservation-alert');
+  const r = await api('POST', '/api/reservations', {
+    date: $('res-date').value,
+    time: $('res-time').value,
+    people: parseInt($('res-people').value)
+  });
+  if (!r.ok) return showAlert('reservation-alert', r.data.error || 'Error al crear reserva');
+  closeModal('modal-reservation');
+  loadReservations();
+}
+
+async function cancelReservation(id) {
+  if (!confirm('¿Cancelar esta reserva?')) return;
+  const r = await api('DELETE', `/api/reservations/${id}`);
+  if (!r.ok) return alert(r.data.error || 'Error al cancelar');
+  loadReservations();
+}
+
+// ══ CAJA ══
+async function loadDailyReport() {
+  const date = $('report-date').value;
+  const r = await api('GET', `/api/reports/daily?date=${date}`);
+  const el = $('daily-report-content');
+  if (!r.ok) { el.innerHTML = '<p style="color:var(--danger)">Error cargando reporte</p>'; return; }
+  const d = r.data;
+  const statusHTML = Object.entries(d.orders_by_status || {})
+    .map(([s,n]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span>${statusBadge(s)}</span><strong>${n}</strong></div>`)
+    .join('') || '<p style="color:var(--text-muted);font-size:13px">Sin pedidos ese día</p>';
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div class="stat-card">
+        <div class="stat-label">Ventas del Día</div>
+        <div class="stat-value" style="font-size:20px">${fmt(d.total_sales)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pedidos Entregados</div>
+        <div class="stat-value" style="font-size:20px">${d.delivered_orders}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:8px">Por Estado</div>
+    ${statusHTML}`;
+}
+
+async function loadClosings() {
+  const r = await api('GET', '/api/cash-closings');
+  const tbody = $('closings-tbody');
+  if (!r.ok || !r.data.length) {
+    tbody.innerHTML = '<tr><td colspan="3"><div class="empty" style="padding:24px"><p>Sin cierres registrados</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = r.data.map(c => `
+    <tr>
+      <td>${c.date}</td>
+      <td><strong>${fmt(c.total_sales)}</strong></td>
+      <td>${c.orders_count} pedidos</td>
+    </tr>`).join('');
+}
+
+async function closeCash() {
+  if (!confirm('¿Realizar el cierre de caja para hoy?')) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const r = await api('POST', '/api/cash-closings', { date: today });
+  if (!r.ok) return alert(r.data.error || 'Error al cerrar caja');
+  alert(`Cierre registrado: ${fmt(r.data.total_sales)} en ${r.data.orders_count} pedidos`);
+  loadClosings();
+  loadDailyReport();
+}
+
+// ══ ADMIN ══
+async function loadAdminData() {
+  await loadMenu();
+  renderAdminCategories();
+  renderAdminDishes();
+}
+
+function renderAdminCategories() {
+  const tbody = $('admin-categories-tbody');
+  if (!allCategories.length) {
+    tbody.innerHTML = '<tr><td colspan="2"><div class="empty" style="padding:20px"><p>Sin categorías</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = allCategories.map(c => `
+    <tr>
+      <td style="color:var(--text-muted)">${c.id}</td>
+      <td><strong>${c.name}</strong></td>
+    </tr>`).join('');
+}
+
+function renderAdminDishes() {
+  const tbody = $('admin-dishes-tbody');
+  if (!allDishes.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty" style="padding:20px"><p>Sin platos</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = allDishes.map(d => `
+    <tr>
+      <td><strong>${d.name}</strong><br><small style="color:var(--text-muted)">${d.category}</small></td>
+      <td>${fmt(d.price)}</td>
+      <td><span class="status ${d.available ? 'status-activa' : 'status-cancelada'}">${d.available ? 'Sí' : 'No'}</span></td>
+      <td>
+        <button class="btn btn-sm btn-secondary" onclick="openDishModal(${d.id})" style="margin-right:4px">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteDish(${d.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openCategoryModal() {
+  hideAlert('cat-alert');
+  $('cat-name').value = '';
+  openModal('modal-category');
+}
+
+async function submitCategory() {
+  hideAlert('cat-alert');
+  const r = await api('POST', '/api/categories', { name: $('cat-name').value });
+  if (!r.ok) return showAlert('cat-alert', r.data.error || 'Error al guardar');
+  closeModal('modal-category');
+  await loadAdminData();
+}
+
+function openDishModal(dishId = null) {
+  hideAlert('dish-alert');
+  editingDishId = dishId;
+  $('dish-modal-title').textContent = dishId ? 'Editar Plato' : 'Nuevo Plato';
+  $('dish-available-group').style.display = dishId ? '' : 'none';
+  $('dish-category').innerHTML = allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+  if (dishId) {
+    const d = allDishes.find(x => x.id === dishId);
+    if (d) {
+      $('dish-name').value = d.name;
+      $('dish-price').value = d.price;
+      $('dish-category').value = d.category_id;
+      $('dish-available').checked = !!d.available;
+    }
+  } else {
+    $('dish-name').value = '';
+    $('dish-price').value = '';
+    $('dish-available').checked = true;
+  }
+  openModal('modal-dish');
+}
+
+async function submitDish() {
+  hideAlert('dish-alert');
+  const body = {
+    name: $('dish-name').value,
+    price: parseFloat($('dish-price').value),
+    category_id: parseInt($('dish-category').value),
+    available: $('dish-available').checked,
+  };
+  let r;
+  if (editingDishId) {
+    r = await api('PUT', `/api/dishes/${editingDishId}`, body);
+  } else {
+    r = await api('POST', '/api/dishes', body);
+  }
+  if (!r.ok) return showAlert('dish-alert', r.data.error || 'Error al guardar');
+  closeModal('modal-dish');
+  await loadAdminData();
+}
+
+async function deleteDish(id) {
+  if (!confirm('¿Eliminar este plato?')) return;
+  const r = await api('DELETE', `/api/dishes/${id}`);
+  if (!r.ok) return alert(r.data.error || 'Error al eliminar');
+  await loadAdminData();
+}
+
+// ══ INIT ══
+// Check if already logged in
+(async () => {
+  const r = await api('GET', '/api/orders').catch(() => ({ status: 401 }));
+  // If we get a non-401, we might be logged in; try to get current user via a known endpoint
+  // The API doesn't have a /me endpoint, so we try login with no body to check
+  // Actually let's check: the orders endpoint returns 401 if not logged in
+  if (r.status !== 401 && r.ok === false) return; // unknown error, stay on login
+  if (r.ok) {
+    // We got orders (200) → we're logged in. But we don't have user info.
+    // Try to restore from localStorage
+    const saved = localStorage.getItem('sigr_user');
+    if (saved) {
+      try { currentUser = JSON.parse(saved); startApp(); return; } catch {}
+    }
+  }
+  // Show login
+})();
+
+// Patch doLogin/doRegister to save user
+const _origLogin = doLogin;
+window.doLogin = async function() {
+  hideAlert('auth-alert');
+  const r = await api('POST', '/api/auth/login', { username: $('login-user').value, password: $('login-pass').value });
+  if (!r.ok) return showAlert('auth-alert', r.data.error || 'Error al iniciar sesión');
+  currentUser = r.data;
+  localStorage.setItem('sigr_user', JSON.stringify(currentUser));
+  startApp();
+};
+
+const _origLogout = doLogout;
+window.doLogout = async function() {
+  await api('POST', '/api/auth/logout');
+  currentUser = null;
+  localStorage.removeItem('sigr_user');
+  $('app').classList.remove('show');
+  $('auth-screen').style.display = 'flex';
+};
+</script>
+</body>
+</html>
